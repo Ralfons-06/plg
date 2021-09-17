@@ -25,6 +25,7 @@ public class MainToolbar extends JToolBar {
 	private JButton newMultipleProcess = new JButton("Multiple Process Generator", ImagesCollection.ICON_NEW);
 	private JButton openProcess = new JButton("Open", ImagesCollection.ICON_OPEN);
 	private JButton saveProcess = new JButton("Save As...", ImagesCollection.ICON_SAVE);
+	private JButton saveAllProcesses = new JButton("Save All As...", ImagesCollection.ICON_SAVE);
 	private JButton generateLog = new JButton("Generate Log", ImagesCollection.ICON_LOG);
 	private JButton generateStream = new JButton("Stream", ImagesCollection.ICON_STREAM);
 	private JToggleButton showConsole = new JToggleButton("", ImagesCollection.ICON_CONSOLE);
@@ -36,6 +37,7 @@ public class MainToolbar extends JToolBar {
 		add(newProcess);
 		add(openProcess);
 		add(saveProcess);
+		add(saveAllProcesses);
 		add(newMultipleProcess);
 		add(Box.createHorizontalGlue());
 		add(generateLog);
@@ -98,6 +100,13 @@ public class MainToolbar extends JToolBar {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				ApplicationController.instance().processes().saveProcess();
+			}
+		});
+
+		saveAllProcesses.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ApplicationController.instance().processes().saveAllProcesses();
 			}
 		});
 		

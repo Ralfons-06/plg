@@ -95,7 +95,7 @@ public class ProcessesController {
 		npd.setVisible(true);
 		for (int i=0; i < npd.getNumberOfProcesses(); i++) {
 			if (RETURNED_VALUES.SUCCESS.equals(npd.returnedValue())) {
-				Process p = new Process(npd.getNewProcessName() + " " + String.valueOf(GENERATED_PROCESSES + i));
+				Process p = new Process(npd.getNewProcessName() + " " + String.valueOf(GENERATED_PROCESSES));
 				ProcessGenerator.randomizeProcess(p, npd.getConfiguredValues());
 
 				GENERATED_PROCESSES++;
@@ -144,6 +144,42 @@ public class ProcessesController {
 				}
 			};
 			worker.execute();
+		}
+	}
+
+	/**
+	 * This method causes the system to save all processes into a file
+	 */
+	public void saveAllProcesses() {
+		final JFileChooser fc = new JFileChooser(new File(configuration.get(KEY_PROCESS_LOCATION, RuntimeUtils.getHomeFolder())));
+		FileFilterHelper.assignExportFileFilters(fc);
+		int returnVal = fc.showSaveDialog(ApplicationController.instance().getMainFrame());
+
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			for(Process process : processesList.getProcesses()) {
+
+				String fileName = process.getName();
+				String fileDir = fc.getSelectedFile().getAbsolutePath();
+				String concPath = fileDir + fileName;
+				final String file = FileFilterHelper.fixFileName(concPath, (FileNameExtensionFilter) fc.getFileFilter());
+				configuration.set(KEY_PROCESS_LOCATION, concPath.substring(0, concPath.lastIndexOf(File.separator)));
+
+				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+					@Override
+					protected Void doInBackground() throws Exception {
+						IFileExporter exporter = FileFilterHelper.getExporterFromFileName((FileNameExtensionFilter) fc.getFileFilter());
+						exporter.exportModel(
+								process,
+								file,
+								ApplicationController.instance().getMainWindow().getProgressStack().askForNewProgress());
+
+						// remote logging, if available
+						RemoteLogger.instance().log(REMOTE_MESSAGES.PROCESS_SAVED).add("filter", fc.getFileFilter().getDescription()).send();
+						return null;
+					}
+				};
+				worker.execute();
+			}
 		}
 	}
 	
