@@ -16,6 +16,7 @@ import plg.generator.process.ProcessGenerator;
 import plg.gui.config.ConfigurationSet;
 import plg.gui.dialog.EvolutionDialog;
 import plg.gui.dialog.GeneralDialog.RETURNED_VALUES;
+import plg.gui.dialog.NewMultipleProcessDialog;
 import plg.gui.dialog.NewProcessDialog;
 import plg.gui.panels.ProcessesList;
 import plg.gui.panels.SingleProcessVisualizer;
@@ -80,6 +81,30 @@ public class ProcessesController {
 			
 			// remote logging, if available
 			RemoteLogger.instance().log(REMOTE_MESSAGES.PROCESS_RANDOMIZED).add(npd.getConfiguredValues()).send();
+		}
+	}
+
+	/**
+	 * This method causes the startup of the procedure for the creation of a
+	 * new random process
+	 */
+	public void randomProcess_mod() {
+		NewMultipleProcessDialog npd = new NewMultipleProcessDialog(
+				ApplicationController.instance().getMainFrame(),
+				"Process " + GENERATED_PROCESSES);
+		npd.setVisible(true);
+		for (int i=0; i < 50; i++) {
+			if (RETURNED_VALUES.SUCCESS.equals(npd.returnedValue())) {
+				Process p = new Process(npd.getNewProcessName() + " " + String.valueOf(GENERATED_PROCESSES + i));
+				ProcessGenerator.randomizeProcess(p, npd.getConfiguredValues());
+
+				GENERATED_PROCESSES++;
+				processesList.storeNewProcess(GENERATED_PROCESSES, p.getName(), generateProcessSubtitle(p), p);
+				notifyChangeProcessesList();
+
+				// remote logging, if available
+				RemoteLogger.instance().log(REMOTE_MESSAGES.PROCESS_RANDOMIZED).add(npd.getConfiguredValues()).send();
+			}
 		}
 	}
 	

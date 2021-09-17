@@ -22,6 +22,7 @@ public class MainToolbar extends JToolBar {
 	private static final long serialVersionUID = -2290088626676975817L;
 
 	private JButton newProcess = new JButton("New Process", ImagesCollection.ICON_NEW);
+	private JButton newMultipleProcess = new JButton("Multiple Process Generator", ImagesCollection.ICON_NEW);
 	private JButton openProcess = new JButton("Open", ImagesCollection.ICON_OPEN);
 	private JButton saveProcess = new JButton("Save As...", ImagesCollection.ICON_SAVE);
 	private JButton generateLog = new JButton("Generate Log", ImagesCollection.ICON_LOG);
@@ -35,6 +36,7 @@ public class MainToolbar extends JToolBar {
 		add(newProcess);
 		add(openProcess);
 		add(saveProcess);
+		add(newMultipleProcess);
 		add(Box.createHorizontalGlue());
 		add(generateLog);
 		add(generateStream);
@@ -75,6 +77,13 @@ public class MainToolbar extends JToolBar {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				ApplicationController.instance().processes().randomProcess();
+			}
+		});
+
+		newMultipleProcess.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ApplicationController.instance().processes().randomProcess_mod();
 			}
 		});
 		
