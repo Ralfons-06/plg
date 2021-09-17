@@ -93,7 +93,7 @@ public class ProcessesController {
 				ApplicationController.instance().getMainFrame(),
 				"Process " + GENERATED_PROCESSES);
 		npd.setVisible(true);
-		for (int i=0; i < 50; i++) {
+		for (int i=0; i < npd.getNumberOfProcesses(); i++) {
 			if (RETURNED_VALUES.SUCCESS.equals(npd.returnedValue())) {
 				Process p = new Process(npd.getNewProcessName() + " " + String.valueOf(GENERATED_PROCESSES + i));
 				ProcessGenerator.randomizeProcess(p, npd.getConfiguredValues());
