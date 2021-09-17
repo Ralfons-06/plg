@@ -1,6 +1,7 @@
 package plg.gui.controller;
 
 import java.io.File;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -91,11 +92,11 @@ public class ProcessesController {
 	public void randomProcess_mod() {
 		NewMultipleProcessDialog npd = new NewMultipleProcessDialog(
 				ApplicationController.instance().getMainFrame(),
-				"Process " + GENERATED_PROCESSES);
+				"p");
 		npd.setVisible(true);
 		for (int i=0; i < npd.getNumberOfProcesses(); i++) {
 			if (RETURNED_VALUES.SUCCESS.equals(npd.returnedValue())) {
-				Process p = new Process(npd.getNewProcessName() + " " + String.valueOf(GENERATED_PROCESSES));
+				Process p = new Process(npd.getNewProcessName() + String.valueOf((int) new Date().getTime()));
 				ProcessGenerator.randomizeProcess(p, npd.getConfiguredValues());
 
 				GENERATED_PROCESSES++;

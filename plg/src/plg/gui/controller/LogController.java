@@ -2,6 +2,7 @@ package plg.gui.controller;
 
 import java.io.File;
 import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.SwingWorker;
@@ -60,7 +61,7 @@ public class LogController {
 	public void generateLog() {
 		NewLogDialog nld = new NewLogDialog(
 				ApplicationController.instance().getMainFrame(),
-				"Log for " + singleProcessVisualizer.getCurrentlyVisualizedProcess().getName());
+				"Log_" + singleProcessVisualizer.getCurrentlyVisualizedProcess().getName());
 		nld.setVisible(true);
 		if (RETURNED_VALUES.SUCCESS.equals(nld.returnedValue())) {
 			final JFileChooser fc = new JFileChooser(new File(configuration.get(KEY_LOG_LOCATION, RuntimeUtils.getHomeFolder())));
@@ -112,6 +113,72 @@ public class LogController {
 					}
 				};
 				worker.execute();
+			}
+		}
+	}
+
+	/**
+	 * This method is responsible of generating a new log
+	 */
+	public void generateAllLog() {
+		NewLogDialog nld = new NewLogDialog(
+				ApplicationController.instance().getMainFrame(),
+				"Log_" + singleProcessVisualizer.getCurrentlyVisualizedProcess().getName());
+		nld.setVisible(true);
+		if (RETURNED_VALUES.SUCCESS.equals(nld.returnedValue())) {
+			final JFileChooser fc = new JFileChooser(new File(configuration.get(KEY_LOG_LOCATION, RuntimeUtils.getHomeFolder())));
+
+			fc.setAcceptAllFileFilterUsed(false);
+			fc.addChoosableFileFilter(new FileNameExtensionFilter("Compressed XES file (*.xes.gz)", "xes.gz"));
+			fc.addChoosableFileFilter(new FileNameExtensionFilter("XES file (*.xes)", "xes"));
+			fc.addChoosableFileFilter(new FileNameExtensionFilter("Compressed MXML file (*.mxml.gz)", "mxml.gz"));
+			fc.addChoosableFileFilter(new FileNameExtensionFilter("MXML file (*.mxml)", "mxml"));
+
+			int returnVal = fc.showSaveDialog(ApplicationController.instance().getMainFrame());
+
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				List<Process> processList = ApplicationController.instance().processes().getProcesses();
+				for(Process process : processList) {
+					String fileName = process.getName();
+					String fileDir = fc.getSelectedFile().getAbsolutePath();
+					String concPath = fileDir + fileName;
+					FileNameExtensionFilter selectedFilter = (FileNameExtensionFilter) fc.getFileFilter();
+					final String extension = selectedFilter.getExtensions()[0];
+					final String file = FileFilterHelper.fixFileName(concPath, (FileNameExtensionFilter) selectedFilter);
+					configuration.set(KEY_LOG_LOCATION, concPath.substring(0, concPath.lastIndexOf(File.separator)));
+
+					SimulationConfiguration sc = nld.getConfiguredValues();
+					final LogGenerator lg = new LogGenerator(
+							process,
+							sc,
+							ApplicationController.instance().getMainWindow().getProgressStack().askForNewProgress());
+
+					// remote logging, if available
+					RemoteLogger.instance().log(REMOTE_MESSAGES.LOG_GENERATED).add(sc).send();
+
+					SwingWorker<XLog, Void> worker = new SwingWorker<XLog, Void>() {
+						@Override
+						protected XLog doInBackground() {
+							XSerializer serializer = null;
+							if (extension.equals("xes")) {
+								serializer = new XesXmlSerializer();
+							} else if (extension.equals("xes.gz")) {
+								serializer = new XesXmlGZIPSerializer();
+							} else if (extension.equals("mxml")) {
+								serializer = new XMxmlSerializer();
+							} else if (extension.equals("mxml.gz")) {
+								serializer = new XMxmlGZIPSerializer();
+							}
+							try {
+								return lg.generateAndSerializeLog(serializer, new File(file));
+							} catch (Exception e) {
+								new ErrorDialog(ApplicationController.instance().getMainFrame(), e).setVisible(true);
+							}
+							return null;
+						}
+					};
+					worker.execute();
+				}
 			}
 		}
 	}
